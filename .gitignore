@@ -1,0 +1,39 @@
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist
+build
+coverage
+
+# React Native iOS/Android
+apps/mobile/ios/Pods
+apps/mobile/ios/build
+apps/mobile/android/.gradle
+apps/mobile/android/app/build
+apps/mobile/android/build
+
+# Xcode / Cocoa
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata/
+DerivedData/

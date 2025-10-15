@@ -1,0 +1,19 @@
+{
+  "name": "nudo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "echo \"(root build placeholder)\"",
+    "clean": "git clean -xfd -e .env -e .env.*",
+    "lint": "echo \"(root lint placeholder)\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
