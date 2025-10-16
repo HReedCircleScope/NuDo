@@ -16,10 +16,14 @@ type ZoneBody = {
   isActive?: boolean;
 };
 
+type StartBody = { userId: string; zoneId: string };
+type StopBody = { sessionId: string };
+
 @Controller()
 export class AppController {
   constructor(
     @InjectModel('Zone') private readonly zones: Model<any>,
+    @InjectModel('Session') private readonly sessions: Model<any>,
   ) {}
 
   @Get()
@@ -45,7 +49,7 @@ export class AppController {
     return this.zones.find({ isActive: true }).lean();
   }
 
-  /** Create a zone (no auth yet; V1 dev-only) */
+  /** Create a zone (dev-only, no auth yet) */
   @Post('zones')
   async createZone(@Body() b: ZoneBody) {
     const doc = await this.zones.create({
@@ -56,5 +60,38 @@ export class AppController {
       isActive: b.isActive ?? true,
     });
     return { id: doc._id.toString() };
+  }
+
+  // --- SESSIONS ---
+
+  /** Start a session (manual start) */
+  @Post('sessions/start')
+  async startSession(@Body() b: StartBody) {
+    const zone = await this.zones.findById(b.zoneId);
+    if (!zone) return { error: 'zone_not_found' };
+
+    const startAt = new Date();
+    const doc = await this.sessions.create({
+      userId: b.userId,
+      zoneId: zone._id.toString(),
+      startAt,
+      source: 'manual',
+    });
+
+    return { sessionId: doc._id.toString(), startAt };
+  }
+
+  /** Stop a session (computes duration) */
+  @Post('sessions/stop')
+  async stopSession(@Body() b: StopBody) {
+    const s = await this.sessions.findById(b.sessionId);
+    if (!s) return { error: 'session_not_found' };
+    if (s.endAt) {
+      return { durationMin: s.durationMin, stoppedAlready: true, endAt: s.endAt };
+    }
+    s.endAt = new Date();
+    s.durationMin = Math.max(0, Math.round((+s.endAt - +s.startAt) / 60000));
+    await s.save();
+    return { durationMin: s.durationMin, endAt: s.endAt };
   }
 }
