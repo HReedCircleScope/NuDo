@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserSchema, ZoneSchema, SessionSchema, WeeklyStatSchema } from './schemas';
 import { LeaderboardController } from './leaderboard.controller';
+import { TrophyRoadController } from './trophy-road.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { LeaderboardController } from './leaderboard.controller';
   ],
   controllers: [
     AppController,
-    LeaderboardController, // ← added
+    LeaderboardController,
+    TrophyRoadController,
   ],
   providers: [AppService],
 })
