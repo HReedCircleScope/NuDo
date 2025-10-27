@@ -33,6 +33,7 @@ interface MilestoneInfo {
 export class TrophyRoadController {
   constructor(
     @InjectModel('Session') private readonly sessions: Model<any>,
+    @InjectModel('Zone') private readonly zones: Model<any>,
   ) {}
 
   /**
@@ -103,6 +104,47 @@ export class TrophyRoadController {
       progressInTier: milestoneInfo.progressInTier,
       milestonesInTier: milestoneInfo.milestonesInTier,
       milestoneIndexInTier: milestoneInfo.milestoneIndexInTier,
+    };
+  }
+
+  /**
+   * GET /season/occupancy
+   * Returns current occupancy data for all active zones
+   * (Active sessions per zone, useful for showing which zones are busy)
+   */
+  @Get('occupancy')
+  async getOccupancy() {
+    // Find all active zones
+    const activeZones = await this.zones.find({ isActive: true }).lean();
+
+    // Find all currently active sessions (endAt is null)
+    const activeSessions = await this.sessions
+      .find({ endAt: null })
+      .lean();
+
+    // Count sessions per zone
+    const occupancyMap = new Map<string, number>();
+
+    for (const session of activeSessions) {
+      const zoneId = session.zoneId;
+      occupancyMap.set(zoneId, (occupancyMap.get(zoneId) || 0) + 1);
+    }
+
+    // Build response with zone details and occupancy count
+    const occupancyData = activeZones.map((zone) => {
+      const zoneId = zone._id.toString();
+      return {
+        zoneId,
+        zoneName: zone.name,
+        activeUsers: occupancyMap.get(zoneId) || 0,
+        isActive: zone.isActive,
+      };
+    });
+
+    return {
+      timestamp: new Date().toISOString(),
+      zones: occupancyData,
+      totalActiveSessions: activeSessions.length,
     };
   }
 
