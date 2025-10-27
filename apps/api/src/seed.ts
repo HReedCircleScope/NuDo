@@ -48,9 +48,9 @@ interface PerformanceConfig {
 }
 
 const PERFORMANCE_CONFIGS: Record<PerformanceLevel, PerformanceConfig> = {
-  low: { minMinutesPerWeek: 100, maxMinutesPerWeek: 200, minSessionDuration: 20, maxSessionDuration: 40, sessionsPerWeek: 7 },
-  medium: { minMinutesPerWeek: 300, maxMinutesPerWeek: 400, minSessionDuration: 30, maxSessionDuration: 60, sessionsPerWeek: 10 },
-  high: { minMinutesPerWeek: 500, maxMinutesPerWeek: 700, minSessionDuration: 45, maxSessionDuration: 90, sessionsPerWeek: 13 },
+  low: { minMinutesPerWeek: 100, maxMinutesPerWeek: 200, minSessionDuration: 30, maxSessionDuration: 60, sessionsPerWeek: 5 },
+  medium: { minMinutesPerWeek: 300, maxMinutesPerWeek: 400, minSessionDuration: 60, maxSessionDuration: 90, sessionsPerWeek: 7 },
+  high: { minMinutesPerWeek: 500, maxMinutesPerWeek: 700, minSessionDuration: 90, maxSessionDuration: 120, sessionsPerWeek: 10 },
 };
 
 /**
@@ -162,69 +162,68 @@ async function seed() {
     });
 
     // ==================== CREATE SESSIONS ====================
-    console.log('Creating study sessions for the past 4 weeks...');
+    console.log('Creating study sessions for the current week (Oct 27 - Nov 2, 2025)...');
 
     const allUserIds = createdUsers.map((u) => u._id.toString());
     const zoneIds = createdZones.map((z) => z._id.toString());
     const performanceLevels = assignPerformanceLevels(allUserIds);
 
     const sessions: any[] = [];
-    const now = new Date();
 
-    // Generate sessions for each of the past 4 weeks
-    for (let weekOffset = 0; weekOffset < 4; weekOffset++) {
-      const weekDate = subWeeks(now, weekOffset);
+    // Current week: Monday Oct 27 - Sunday Nov 2, 2025
+    // Generate sessions from Monday (Oct 27) through Thursday (Oct 30) - 4 days of activity
+    const currentWeekStart = new Date('2025-10-27T00:00:00.000Z'); // Monday Oct 27
+    const daysWithSessions = 4; // Mon-Thu
 
-      for (const userId of allUserIds) {
-        const level = performanceLevels.get(userId)!;
-        const config = PERFORMANCE_CONFIGS[level];
+    for (const userId of allUserIds) {
+      const level = performanceLevels.get(userId)!;
+      const config = PERFORMANCE_CONFIGS[level];
 
-        // Determine target weekly minutes
-        const targetMinutes = randomInt(config.minMinutesPerWeek, config.maxMinutesPerWeek);
+      // Determine target weekly minutes
+      const targetMinutes = randomInt(config.minMinutesPerWeek, config.maxMinutesPerWeek);
 
-        // Generate sessions for this week
-        let accumulatedMinutes = 0;
-        const numSessions = config.sessionsPerWeek;
+      // Generate sessions for this week
+      let accumulatedMinutes = 0;
+      const numSessions = config.sessionsPerWeek;
 
-        for (let sessionIdx = 0; sessionIdx < numSessions; sessionIdx++) {
-          // Calculate remaining minutes to distribute
-          const remainingSessions = numSessions - sessionIdx;
-          const remainingMinutes = targetMinutes - accumulatedMinutes;
+      for (let sessionIdx = 0; sessionIdx < numSessions; sessionIdx++) {
+        // Calculate remaining minutes to distribute
+        const remainingSessions = numSessions - sessionIdx;
+        const remainingMinutes = targetMinutes - accumulatedMinutes;
 
-          // Calculate duration for this session
-          let durationMin: number;
-          if (sessionIdx === numSessions - 1) {
-            // Last session: use remaining minutes (with some variance)
-            durationMin = Math.max(config.minSessionDuration, remainingMinutes);
-          } else {
-            // Random duration within config bounds
-            const avgRemaining = remainingMinutes / remainingSessions;
-            const minDur = Math.max(config.minSessionDuration, avgRemaining - 10);
-            const maxDur = Math.min(config.maxSessionDuration, avgRemaining + 10);
-            durationMin = randomInt(Math.floor(minDur), Math.ceil(maxDur));
-          }
-
-          // Generate random day within the week (0-6, where 0 is the week start)
-          const dayOffset = randomInt(0, 6);
-          const sessionDate = new Date(weekDate);
-          sessionDate.setDate(sessionDate.getDate() + dayOffset);
-
-          const startAt = randomStudyTime(sessionDate);
-          const endAt = addMinutes(startAt, durationMin);
-          const zoneId = randomElement(zoneIds);
-
-          sessions.push({
-            userId,
-            zoneId,
-            startAt,
-            endAt,
-            durationMin,
-            source: 'manual',
-            createdAt: startAt, // Set createdAt to match session start
-          });
-
-          accumulatedMinutes += durationMin;
+        // Calculate duration for this session
+        let durationMin: number;
+        if (sessionIdx === numSessions - 1) {
+          // Last session: use remaining minutes (with some variance)
+          durationMin = Math.max(config.minSessionDuration, remainingMinutes);
+        } else {
+          // Random duration within config bounds
+          const avgRemaining = remainingMinutes / remainingSessions;
+          const minDur = Math.max(config.minSessionDuration, avgRemaining - 10);
+          const maxDur = Math.min(config.maxSessionDuration, avgRemaining + 10);
+          durationMin = randomInt(Math.floor(minDur), Math.ceil(maxDur));
         }
+
+        // Generate random day within Mon-Thu (0-3)
+        const dayOffset = randomInt(0, daysWithSessions - 1);
+        const sessionDate = new Date(currentWeekStart);
+        sessionDate.setDate(sessionDate.getDate() + dayOffset);
+
+        const startAt = randomStudyTime(sessionDate);
+        const endAt = addMinutes(startAt, durationMin);
+        const zoneId = randomElement(zoneIds);
+
+        sessions.push({
+          userId,
+          zoneId,
+          startAt,
+          endAt,
+          durationMin,
+          source: 'manual',
+          createdAt: startAt, // Set createdAt to match session start
+        });
+
+        accumulatedMinutes += durationMin;
       }
     }
 
@@ -276,26 +275,26 @@ async function seed() {
 
     // ==================== SUMMARY ====================
     console.log('═'.repeat(60));
-    console.log('SEED SUMMARY');
+    console.log('SEED SUMMARY - Current Week (Oct 27 - Nov 2, 2025)');
     console.log('═'.repeat(60));
     console.log(`Users:         ${createdUsers.length}`);
     console.log(`Zones:         ${createdZones.length}`);
-    console.log(`Sessions:      ${createdSessions.length}`);
+    console.log(`Sessions:      ${createdSessions.length} (Mon-Thu activity)`);
     console.log(`Weekly Stats:  ${createdStats.length}`);
     console.log('═'.repeat(60));
 
     // Show sample user data
-    console.log('\nSample User Performance:');
-    for (const userId of allUserIds.slice(0, 3)) {
+    console.log('\nSample User Performance (Current Week):');
+    for (const userId of allUserIds.slice(0, 5)) {
       const user = createdUsers.find((u) => u._id.toString() === userId);
       const level = performanceLevels.get(userId);
       const userWeeks = weeklyData.get(userId);
 
       if (userWeeks) {
-        const avgMinutes = Math.round(
-          Array.from(userWeeks.values()).reduce((sum, min) => sum + min, 0) / userWeeks.size
-        );
-        console.log(`  ${user?.displayName} (${level}): ~${avgMinutes} min/week avg`);
+        const totalMinutes = Array.from(userWeeks.values()).reduce((sum, min) => sum + min, 0);
+        const weekStart = Array.from(userWeeks.keys())[0];
+        const weekStat = createdStats.find(s => s.userId === userId && s.weekStartISO === weekStart);
+        console.log(`  ${user?.displayName} (${level}): ${totalMinutes} min, ${weekStat?.points || 0} points, ${weekStat?.tier || 'base'} tier`);
       }
     }
 
