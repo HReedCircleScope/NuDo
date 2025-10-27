@@ -131,7 +131,7 @@ export class TrophyRoadController {
     }
 
     // Build response with zone details and occupancy count
-    const occupancyData = activeZones.map((zone) => {
+    const occupancyData = activeZones.map((zone: any) => {
       const zoneId = zone._id.toString();
       return {
         zoneId,
