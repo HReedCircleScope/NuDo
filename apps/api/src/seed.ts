@@ -9,31 +9,31 @@ import { toZonedTime } from 'date-fns-tz';
 
 const TIMEZONE = 'America/Phoenix';
 
-// User configuration
+// User configuration (MongoDB will auto-generate _id values)
 const PLEDGES = [
-  { _id: 'pledge1', displayName: 'Alex Chen', email: 'alex.chen@example.com', role: 'pledge' },
-  { _id: 'pledge2', displayName: 'Jordan Smith', email: 'jordan.smith@example.com', role: 'pledge' },
-  { _id: 'pledge3', displayName: 'Sam Rivera', email: 'sam.rivera@example.com', role: 'pledge' },
-  { _id: 'pledge4', displayName: 'Casey Johnson', email: 'casey.johnson@example.com', role: 'pledge' },
-  { _id: 'pledge5', displayName: 'Taylor Brown', email: 'taylor.brown@example.com', role: 'pledge' },
+  { displayName: 'Alex Chen', email: 'alex.chen@example.com', role: 'pledge' },
+  { displayName: 'Jordan Smith', email: 'jordan.smith@example.com', role: 'pledge' },
+  { displayName: 'Sam Rivera', email: 'sam.rivera@example.com', role: 'pledge' },
+  { displayName: 'Casey Johnson', email: 'casey.johnson@example.com', role: 'pledge' },
+  { displayName: 'Taylor Brown', email: 'taylor.brown@example.com', role: 'pledge' },
 ];
 
 const MEMBERS = [
-  { _id: 'member1', displayName: 'Morgan Lee', email: 'morgan.lee@example.com', role: 'member' },
-  { _id: 'member2', displayName: 'Riley Davis', email: 'riley.davis@example.com', role: 'member' },
-  { _id: 'member3', displayName: 'Quinn Martinez', email: 'quinn.martinez@example.com', role: 'member' },
-  { _id: 'member4', displayName: 'Avery Wilson', email: 'avery.wilson@example.com', role: 'member' },
-  { _id: 'member5', displayName: 'Cameron Garcia', email: 'cameron.garcia@example.com', role: 'member' },
+  { displayName: 'Morgan Lee', email: 'morgan.lee@example.com', role: 'member' },
+  { displayName: 'Riley Davis', email: 'riley.davis@example.com', role: 'member' },
+  { displayName: 'Quinn Martinez', email: 'quinn.martinez@example.com', role: 'member' },
+  { displayName: 'Avery Wilson', email: 'avery.wilson@example.com', role: 'member' },
+  { displayName: 'Cameron Garcia', email: 'cameron.garcia@example.com', role: 'member' },
 ];
 
 const AVATAR_KEYS = ['avatar1', 'avatar2', 'avatar3', 'avatar4', 'avatar5'];
 
-// Zone configuration
+// Zone configuration (MongoDB will auto-generate _id values)
 const ZONES = [
-  { _id: 'zone1', name: 'Main Library', lat: 32.2319, lng: -110.9501, radiusMeters: 100, isActive: true },
-  { _id: 'zone2', name: 'Student Union', lat: 32.2298, lng: -110.9489, radiusMeters: 150, isActive: true },
-  { _id: 'zone3', name: 'Science Library', lat: 32.2335, lng: -110.9512, radiusMeters: 80, isActive: true },
-  { _id: 'zone4', name: 'Engineering Building', lat: 32.2342, lng: -110.9478, radiusMeters: 120, isActive: true },
+  { name: 'Main Library', lat: 32.2319, lng: -110.9501, radiusMeters: 100, isActive: true },
+  { name: 'Student Union', lat: 32.2298, lng: -110.9489, radiusMeters: 150, isActive: true },
+  { name: 'Science Library', lat: 32.2335, lng: -110.9512, radiusMeters: 80, isActive: true },
+  { name: 'Engineering Building', lat: 32.2342, lng: -110.9478, radiusMeters: 120, isActive: true },
 ];
 
 // Performance levels (weekly minutes range)
