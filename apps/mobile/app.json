@@ -3,11 +3,7 @@
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
-    "scheme": "nudo",
     "orientation": "portrait",
-    "plugins": [
-      "expo-router"
-    ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
