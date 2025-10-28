@@ -9,17 +9,23 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
-    "expo": "~54.0.13",
-    "expo-constants": "^18.0.10",
-    "expo-router": "^6.0.13",
-    "expo-status-bar": "~3.0.8",
-    "react": "19.1.0",
-    "react-native": "0.81.4",
-    "react-native-safe-area-context": "^5.6.1"
+    "expo": "~51.0.28",
+    "expo-constants": "^16.0.2",
+    "expo-linking": "^8.0.8",
+    "expo-router": "~3.5.23",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-safe-area-context": "^5.6.1",
+    "react-native-screens": "^4.18.0"
   },
-  "private": true,
   "devDependencies": {
-    "@types/react": "~19.1.10"
-  }
+    "@types/react": "~18.2.79",
+    "typescript": "~5.3.3"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-native": "0.74.5"
+  },
+  "private": true
 }
