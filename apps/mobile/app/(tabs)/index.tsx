@@ -1,69 +1,111 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useState, useEffect } from 'react';
 import { Colors } from '../../constants/Colors';
+import { fetchWeeklyStats } from '../../utils/api';
 
 export default function HomeScreen() {
-  const [isStudying, setIsStudying] = useState(false);
-  const [timer, setTimer] = useState('00:00:00');
-  const weeklyMinutes = 0;
-  const goalMinutes = 360; // 6 hours
+  const [sessionActive, setSessionActive] = useState(false);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [weeklyMinutes, setWeeklyMinutes] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const userId = 'test-user-123';
+  const weeklyGoalHours = 6;
+
+  useEffect(() => {
+    loadWeeklyStats();
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (sessionActive) {
+      interval = setInterval(() => {
+        setSessionTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [sessionActive]);
+
+  async function loadWeeklyStats() {
+    try {
+      const stats = await fetchWeeklyStats(userId);
+      setWeeklyMinutes(stats.minutes || 0);
+    } catch (error) {
+      console.error('Failed to load weekly stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggleSession() {
+    if (sessionActive) {
+      setSessionActive(false);
+      setSessionTime(0);
+      loadWeeklyStats();
+    } else {
+      setSessionActive(true);
+      setSessionTime(0);
+    }
+  }
+
+  function formatTime(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  const weeklyProgress = Math.min((weeklyMinutes / (weeklyGoalHours * 60)) * 100, 100);
+  const weeklyHours = (weeklyMinutes / 60).toFixed(1);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          {/* Timer Display */}
-          <Text style={styles.timer}>{timer}</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>NuDo</Text>
 
-          {/* Start Study Button */}
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => setIsStudying(!isStudying)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.startButtonText}>
-              {isStudying ? 'Stop Study' : 'Start Study'}
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.timerContainer}>
+          <Text style={styles.timer}>{formatTime(sessionTime)}</Text>
+          <Text style={styles.timerLabel}>
+            {sessionActive ? 'Session In Progress' : 'Ready to Study'}
+          </Text>
+        </View>
 
-          {/* Current Zone */}
-          <Text style={styles.zoneText}>Current Zone: Not in zone</Text>
+        <TouchableOpacity
+          style={[styles.button, sessionActive && styles.buttonActive]}
+          onPress={toggleSession}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>
+            {sessionActive ? 'STOP SESSION' : 'START SESSION'}
+          </Text>
+        </TouchableOpacity>
 
-          {/* Weekly Progress Section */}
-          <View style={styles.progressSection}>
-            <Text style={styles.sectionTitle}>Weekly Progress</Text>
+        <View style={styles.statsContainer}>
+          <Text style={styles.statsTitle}>This Week</Text>
 
-            {/* Progress Bar */}
-            <View style={styles.progressBarContainer}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${(weeklyMinutes / goalMinutes) * 100}%` },
-                ]}
-              />
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <View style={[styles.progressBarFill, { width: `${weeklyProgress}%` }]} />
             </View>
-
-            {/* Progress Label */}
-            <Text style={styles.progressLabel}>
-              This Week: {weeklyMinutes} / {goalMinutes} min
+            <Text style={styles.progressText}>
+              {weeklyHours}h / {weeklyGoalHours}h
             </Text>
           </View>
 
-          {/* Bonus Callout */}
-          <View style={styles.bonusCallout}>
-            <Text style={styles.bonusText}>
-              Next bonus: 6 hours (+25 pts)
-            </Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{weeklyMinutes}</Text>
+              <Text style={styles.statLabel}>Minutes</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{Math.floor(weeklyProgress)}%</Text>
+              <Text style={styles.statLabel}>Progress</Text>
+            </View>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -73,77 +115,100 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.black,
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  timer: {
-    fontSize: 48,
+  title: {
+    fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.white,
-    marginBottom: 32,
-  },
-  startButton: {
-    backgroundColor: Colors.gold,
-    paddingVertical: 20,
-    paddingHorizontal: 60,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  startButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.black,
-  },
-  zoneText: {
-    fontSize: 16,
-    color: Colors.lightGray,
+    color: Colors.gold,
+    marginTop: 20,
     marginBottom: 40,
   },
-  progressSection: {
-    width: '100%',
-    marginBottom: 24,
+  timerContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  sectionTitle: {
+  timer: {
+    fontSize: 56,
+    fontWeight: 'bold',
+    color: Colors.white,
+    fontVariant: ['tabular-nums'],
+  },
+  timerLabel: {
+    fontSize: 16,
+    color: Colors.lightGray,
+    marginTop: 8,
+  },
+  button: {
+    backgroundColor: Colors.gold,
+    paddingHorizontal: 60,
+    paddingVertical: 24,
+    borderRadius: 16,
+    marginBottom: 40,
+    elevation: 4,
+    shadowColor: Colors.gold,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  buttonActive: {
+    backgroundColor: Colors.error,
+  },
+  buttonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.black,
+    letterSpacing: 1,
+  },
+  statsContainer: {
+    width: '100%',
+    backgroundColor: Colors.darkGray,
+    borderRadius: 16,
+    padding: 20,
+  },
+  statsTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: Colors.white,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   progressBarContainer: {
-    width: '100%',
-    height: 20,
-    backgroundColor: Colors.darkGray,
-    borderRadius: 10,
+    marginBottom: 20,
+  },
+  progressBarBackground: {
+    height: 12,
+    backgroundColor: Colors.lightGray,
+    borderRadius: 6,
     overflow: 'hidden',
-    marginBottom: 8,
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: Colors.gold,
   },
-  progressLabel: {
-    fontSize: 16,
+  progressText: {
+    fontSize: 14,
     color: Colors.white,
+    marginTop: 8,
     textAlign: 'center',
   },
-  bonusCallout: {
-    width: '100%',
-    backgroundColor: Colors.gold + '20',
-    borderColor: Colors.gold,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  bonusText: {
-    fontSize: 16,
+  statBox: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
     color: Colors.gold,
-    textAlign: 'center',
-    fontWeight: '600',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: Colors.lightGray,
+    marginTop: 4,
   },
 });

@@ -6,17 +6,16 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
         tabBarActiveTintColor: Colors.gold,
-        tabBarInactiveTintColor: Colors.lightGray,
+        tabBarInactiveTintColor: '#888',
         tabBarStyle: {
           backgroundColor: Colors.black,
           borderTopColor: Colors.darkGray,
-          borderTopWidth: 1,
         },
-        tabBarLabelStyle: {
-          fontSize: 12,
+        headerStyle: {
+          backgroundColor: Colors.black,
         },
+        headerTintColor: Colors.white,
       }}
     >
       <Tabs.Screen
@@ -40,7 +39,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="trophy"
         options={{
-          title: 'Trophy',
+          title: 'Trophy Road',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="road" size={size} color={color} />
           ),
