@@ -35,11 +35,23 @@ The backend is fully operational with the following endpoints:
   - Returns: `{ userId, minutes, weekStart }`
   - Uses America/Phoenix timezone for week boundaries
 
-**Leaderboards (Partial)**
-- `GET /leaderboard?week={YYYY-MM-DD}` - Basic leaderboard endpoint
-  - Currently only sorts by minutes (descending)
-  - Returns top 50 users
-  - **Missing**: scope filtering (overall/pledge/member), proper tie-breaker logic, user details
+**Leaderboards**
+- `GET /leaderboard?week={YYYY-MM-DD}&scope={overall|pledge|member}` - Complete leaderboard with:
+  - Scope filtering (overall/pledge/member)
+  - Proper tie-breaker logic (tier priority, then points, then timestamp)
+  - User details included (displayName, role)
+  - Returns top 50 users sorted by weekly points
+  - Implementation: `apps/api/src/leaderboard.controller.ts`
+
+**Trophy Road / Season Progress**
+- `GET /season/progress?userId={id}` - Year-to-date progression tracking
+  - Returns total minutes/hours within current academic window
+  - 4-tier milestone system (Tier I-IV with increasing intervals)
+  - Milestone calculation with progress tracking
+  - Implementation: `apps/api/src/trophy-road.controller.ts`
+- `GET /season/occupancy` - Real-time zone occupancy data
+  - Shows active sessions per zone
+  - Useful for displaying which zones are currently busy
 
 #### Data Models (MongoDB Schemas)
 
@@ -91,35 +103,74 @@ Location: `packages/shared/src/index.ts`
 - 5% bonus per consecutive week meeting goal
 - Capped at 1.25x (5 weeks)
 
+#### Mobile App (React Native + Expo)
+
+Location: `apps/mobile/`
+
+The mobile app is built with Expo (blank-typescript template) and includes:
+
+**Project Structure**
+- `constants/Colors.ts` - Sigma Nu color constants (Gold #FFC107, Black #111111)
+- `api/client.ts` - Axios client with platform-specific baseURL
+- `types/api.ts` - TypeScript interfaces for all API responses
+- `components/` - Reusable UI components (Button, LoadingSpinner, ErrorState)
+- `screens/` - 5 complete screen components
+
+**Screens Implemented**
+1. **HomeScreen** - `apps/mobile/screens/HomeScreen.tsx`
+   - Displays current week stats (minutes, hours, progress)
+   - "Start Study" button
+   - Zone status indicator
+   - Fetches from `/stats/weekly` endpoint
+
+2. **LeaderboardScreen** - `apps/mobile/screens/LeaderboardScreen.tsx`
+   - 3 tabs: Overall, Pledge, Member
+   - Pull-to-refresh functionality
+   - Top 3 ranks highlighted in gold
+   - Fetches from `/leaderboard` with scope parameter
+
+3. **TrophyRoadScreen** - `apps/mobile/screens/TrophyRoadScreen.tsx`
+   - YTD hours and current tier display
+   - Milestone progress tracking
+   - Fetches from `/season/progress`
+
+4. **MapScreen** - `apps/mobile/screens/MapScreen.tsx`
+   - List of all zones with active/inactive status
+   - Pull-to-refresh functionality
+   - Fetches from `/zones`
+
+5. **ProfileScreen** - `apps/mobile/screens/ProfileScreen.tsx`
+   - User avatar with initials
+   - Stats cards (YTD hours, weekly minutes)
+   - Recent sessions placeholder
+   - Settings button
+
+**Tech Stack**
+- React Native 0.74.5
+- React 18.2.0 (strict version with overrides)
+- Expo ~51.0.0
+- Axios for API calls
+- Platform-specific API URLs (Android: 10.0.2.2:3000, iOS: 10.134.180.90:3000)
+
 ### ❌ What's Missing
 
-#### 1. Leaderboards (Incomplete)
-The leaderboard endpoint exists but needs:
-- **Scope filtering**: Support `?scope=overall|pledge|member` query parameter
-- **Tie-breaker logic**: When points are equal:
-  1. Highest tier wins
-  2. If tied, highest total points wins
-  3. If still tied, earliest timestamp wins
-- **User details**: Include user's `displayName` and `role` in response
-- **Proper sorting**: Sort by points (desc), then apply tie-breakers
+#### 1. Mobile App Navigation
+- No navigation system implemented yet
+- Screens exist but are not connected
+- Need to add React Navigation or Expo Router
+- Tab navigation for main 5 screens
 
-#### 2. Trophy Road (Not Started)
-- No backend logic for Trophy Road progression
-- Need to track:
-  - Total points across all academic windows
-  - Trophy milestones and rewards
-  - Visual progression data for mobile app
-- Academic windows defined in shared: `UA_2025_WINDOWS`
+#### 2. Live Session Tracking
+- No geofence detection implemented
+- Manual session start/stop not connected to backend
+- Need location permissions and background tracking
+- Real-time timer during active sessions
 
-#### 3. Mobile App (Not Started)
-- React Native app not initialized
-- Will need to consume backend API
-- Features needed:
-  - Zone detection and auto-session start/stop
-  - Real-time session tracking
-  - Weekly stats dashboard
-  - Leaderboards view
-  - Trophy Road visualization
+#### 3. Authentication
+- No user authentication system
+- Currently using hardcoded "Test User"
+- Need to integrate Firebase Auth or similar
+- Device ID management for unique users
 
 ## Tech Stack & Decisions
 
@@ -132,11 +183,17 @@ The leaderboard endpoint exists but needs:
   - Helper function: `phoenixWeekStartISODate()` in `apps/api/src/time.ts:11`
 - **Architecture**: Monorepo with workspaces
   - `apps/api`: NestJS backend
+  - `apps/mobile`: React Native mobile app
   - `packages/shared`: Shared constants and types
 
-### Future Mobile
-- **Framework**: React Native (not started)
-- **Package**: Will be `apps/mobile` when created
+### Mobile
+- **Framework**: React Native 0.74.5 with Expo ~51.0.0
+- **Template**: blank-typescript (minimal dependencies)
+- **HTTP Client**: Axios
+- **Styling**: StyleSheet (no additional UI libraries)
+- **State Management**: React hooks (useState, useEffect)
+- **Platform Support**: iOS and Android
+  - Platform-specific API URLs configured via Platform.OS detection
 
 ### Key Design Decisions
 
@@ -146,6 +203,9 @@ The leaderboard endpoint exists but needs:
 4. **Verified duration**: Only time spent in approved zones counts
 5. **No authentication yet**: All endpoints are dev-only, auth will be added later
 6. **Points stored in WeeklyStat**: Not auto-computed yet, will need background job or trigger
+7. **Mobile app minimal dependencies**: After React dependency conflicts, rebuilt with blank-typescript template
+8. **React version locked**: Strict overrides in package.json force React 18.2.0 to prevent hook errors
+9. **No navigation yet**: Individual screens built first, navigation layer will be added later
 
 ## Coding Standards
 
@@ -193,12 +253,14 @@ Location: `packages/shared/src/index.ts`
 
 ## Next Steps (Priority Order)
 
-1. **Complete Leaderboards** - Add scope filtering and tie-breaker logic
-2. **Auto-compute Points** - Add background job or trigger to compute `points` and `tier` fields in WeeklyStat
-3. **Trophy Road Backend** - Implement progression tracking and milestones
-4. **Mobile App Init** - Set up React Native project structure
-5. **Authentication** - Add Firebase Auth or similar
-6. **Auto-session Management** - Geofence triggers for auto-start/stop
+1. **Mobile Navigation** - Connect the 5 screens with tab navigation (React Navigation or Expo Router)
+2. **Live Session Tracking** - Implement geofence detection and real-time session timers
+3. **Authentication** - Add Firebase Auth or similar for user management
+4. **Auto-compute Points** - Add background job or trigger to compute `points` and `tier` fields in WeeklyStat
+5. **Profile Integration** - Connect ProfileScreen to fetch real user data from backend
+6. **Session Management UI** - Add start/stop session controls that connect to backend endpoints
+7. **Push Notifications** - Remind users to study, celebrate milestones
+8. **Background Location** - Enable continued tracking when app is backgrounded
 
 ## Development Notes
 
@@ -207,6 +269,29 @@ Location: `packages/shared/src/index.ts`
 cd apps/api
 npm run start:dev
 ```
+
+### Running the Mobile App
+```bash
+cd apps/mobile
+npm start
+
+# Then press:
+# - 'a' for Android emulator
+# - 'i' for iOS simulator
+# - Scan QR code for physical device
+```
+
+**Important**: Update the API URL in `apps/mobile/api/client.ts` to match your backend:
+- Android emulator: `http://10.0.2.2:3000`
+- iOS simulator: Use your local IP (e.g., `http://10.134.180.90:3000`)
+- Physical device: Use your local network IP
+
+### Seeding Test Data
+```bash
+cd apps/api
+npm run seed
+```
+This creates 10 test users (5 pledges, 5 members), 4 zones, and generates current week session data.
 
 ### MongoDB Connection
 - Connection string stored in `.env` as `NUDO_MONGO_URI`
@@ -217,6 +302,9 @@ Use curl, Postman, or similar:
 ```bash
 # Get config
 curl http://localhost:3000/config
+
+# Get all zones
+curl http://localhost:3000/zones
 
 # Start session
 curl -X POST http://localhost:3000/sessions/start \
@@ -231,15 +319,33 @@ curl -X POST http://localhost:3000/sessions/stop \
 # Get weekly stats
 curl http://localhost:3000/stats/weekly?userId=user123
 
-# Get leaderboard
-curl http://localhost:3000/leaderboard?week=2025-10-27
+# Get leaderboard (with scope)
+curl http://localhost:3000/leaderboard?week=2025-10-27&scope=overall
+curl http://localhost:3000/leaderboard?week=2025-10-27&scope=pledge
+curl http://localhost:3000/leaderboard?week=2025-10-27&scope=member
+
+# Get season progress (Trophy Road)
+curl http://localhost:3000/season/progress?userId=user123
+
+# Get zone occupancy
+curl http://localhost:3000/season/occupancy
 ```
 
 ## Questions or Issues?
 
 - Check the code comments for implementation details
 - Key files:
-  - `apps/api/src/app.controller.ts` - Main endpoints
-  - `apps/api/src/schemas.ts` - Database models
-  - `packages/shared/src/index.ts` - Constants and scoring
-  - `apps/api/src/time.ts` - Timezone utilities
+  - **Backend**:
+    - `apps/api/src/app.controller.ts` - Main endpoints (sessions, config, zones)
+    - `apps/api/src/leaderboard.controller.ts` - Leaderboard with scope filtering
+    - `apps/api/src/trophy-road.controller.ts` - Trophy Road / Season progress
+    - `apps/api/src/schemas.ts` - Database models (User, Zone, Session, WeeklyStat)
+    - `apps/api/src/time.ts` - Timezone utilities (Phoenix week calculations)
+    - `apps/api/src/seed.ts` - Database seed script
+  - **Shared**:
+    - `packages/shared/src/index.ts` - Constants, scoring logic, academic windows
+  - **Mobile**:
+    - `apps/mobile/api/client.ts` - API client configuration
+    - `apps/mobile/types/api.ts` - TypeScript API types
+    - `apps/mobile/constants/Colors.ts` - Sigma Nu color constants
+    - `apps/mobile/screens/*.tsx` - 5 screen components (Home, Leaderboard, TrophyRoad, Map, Profile)
