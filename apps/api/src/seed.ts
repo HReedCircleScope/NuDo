@@ -4,7 +4,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { phoenixWeekStartISODate } from './time';
 import { weeklyTotalPoints } from '@nudo/shared';
-import { sub, add, startOfDay } from 'date-fns';
+import { subWeeks, addHours, addMinutes, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
 const TIMEZONE = 'America/Phoenix';
@@ -75,7 +75,7 @@ function randomStudyTime(date: Date): Date {
   const dayStart = startOfDay(phoenixDate);
   const hour = randomInt(8, 21); // 8am to 9pm (session can extend to 10pm)
   const minute = randomInt(0, 59);
-  return add(add(dayStart, {hours: hour}), {minutes: minute});
+  return addMinutes(addHours(dayStart, hour), minute);
 }
 
 /**
@@ -210,7 +210,7 @@ async function seed() {
         sessionDate.setDate(sessionDate.getDate() + dayOffset);
 
         const startAt = randomStudyTime(sessionDate);
-        const endAt = add(startAt, {minutes: durationMin});
+        const endAt = addMinutes(startAt, durationMin);
         const zoneId = randomElement(zoneIds);
 
         sessions.push({

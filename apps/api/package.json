@@ -27,7 +27,7 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
     "@nudo/shared": "^0.1.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^2.30.0",
     "date-fns-tz": "^3.2.0",
     "expo-location": "~19.0.7",
     "expo-notifications": "~0.32.12",
