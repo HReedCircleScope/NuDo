@@ -8,7 +8,7 @@ import { LeaderboardResponse, LeaderboardEntry } from '../types/api';
 
 type TabType = 'overall' | 'pledge' | 'member';
 
-export function LeaderboardScreen() {
+function LeaderboardScreen() {
   const [selectedTab, setSelectedTab] = useState<TabType>('overall');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -123,6 +123,8 @@ export function LeaderboardScreen() {
     </SafeAreaView>
   );
 }
+
+export default LeaderboardScreen;
 
 const styles = StyleSheet.create({
   container: {

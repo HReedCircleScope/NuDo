@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors } from '../constants/Colors';
 
-export function ProfileScreen() {
+function ProfileScreen() {
   const handleSettingsPress = () => {
     console.log('Settings pressed');
   };
@@ -44,6 +44,8 @@ export function ProfileScreen() {
     </SafeAreaView>
   );
 }
+
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {

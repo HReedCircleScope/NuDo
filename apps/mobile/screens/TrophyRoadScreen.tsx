@@ -6,7 +6,7 @@ import { ErrorState } from '../components/ErrorState';
 import { fetchSeasonProgress } from '../api/client';
 import { SeasonProgress } from '../types/api';
 
-export function TrophyRoadScreen() {
+function TrophyRoadScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [seasonProgress, setSeasonProgress] = useState<SeasonProgress | null>(null);
@@ -58,6 +58,8 @@ export function TrophyRoadScreen() {
     </SafeAreaView>
   );
 }
+
+export default TrophyRoadScreen;
 
 const styles = StyleSheet.create({
   container: {

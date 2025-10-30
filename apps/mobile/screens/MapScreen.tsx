@@ -6,7 +6,7 @@ import { ErrorState } from '../components/ErrorState';
 import { fetchZones } from '../api/client';
 import { Zone } from '../types/api';
 
-export function MapScreen() {
+function MapScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +90,8 @@ export function MapScreen() {
     </SafeAreaView>
   );
 }
+
+export default MapScreen;
 
 const styles = StyleSheet.create({
   container: {

@@ -7,7 +7,7 @@ import { ErrorState } from '../components/ErrorState';
 import { fetchWeeklyStats } from '../api/client';
 import { WeeklyStats } from '../types/api';
 
-export function HomeScreen() {
+function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
@@ -71,6 +71,8 @@ export function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
